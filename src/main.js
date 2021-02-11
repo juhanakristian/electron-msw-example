@@ -21,18 +21,6 @@ const createWindow = () => {
   mainWindow.webContents.openDevTools();
 };
 
-// ipcMain.on("api-call", (event, arg) => {
-//   const request = net.request(`https://example.com/${endpoint}`);
-
-//   request.on("response", (response) => {
-//     let data = "";
-//     response.on("data", (chunk) => {
-//       data += chunk;
-//     });
-//   });
-//   event.reply("asynchronous-reply", "pong");
-// });
-
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
@@ -56,3 +44,21 @@ app.on("activate", () => {
 });
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and import them here.
+app.whenReady().then(() => {
+  const { server } = require("./mocks/server");
+  server.listen();
+
+  const { net } = require("electron");
+  const request = net.request("https://example.com/user");
+  request.on("response", (response) => {
+    console.log(`STATUS: ${response.statusCode}`);
+    console.log(`HEADERS: ${JSON.stringify(response.headers)}`);
+    response.on("data", (chunk) => {
+      console.log(`BODY: ${chunk}`);
+    });
+    response.on("end", () => {
+      console.log("No more data in response.");
+    });
+  });
+  request.end();
+});
